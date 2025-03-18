@@ -1,8 +1,0 @@
-django
-celery
-requests
-requests-toolbelt
-humanize
-mysqlclient
-redis
-tzdata
