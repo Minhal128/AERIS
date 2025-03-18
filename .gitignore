@@ -3,6 +3,6 @@
 .qodo
 LICENSE
 .qodo
-*.aeris
-*._pycache
-*.db
+.aeris
+._pycache
+.db
