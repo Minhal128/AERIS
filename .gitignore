@@ -1,8 +1,18 @@
-# Created by venv; see https://docs.python.org/3/library/venv.html
-*
-.qodo
-LICENSE
+# Python virtual environment
+venv/
+env/
+
+# Python bytecode cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Database folder
+db/
+
+# Project specific
 .qodo
 .aeris
-._pycache
-.db
+
+# License file (if you want to ignore it)
+LICENSE
