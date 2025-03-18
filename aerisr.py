@@ -16,7 +16,7 @@ import os
 import struct
 import hashlib
 from hashcracker import crack_hash, online_lookup, banner as hash_banner
-
+from hashcracker import main as hashcracker_main
 class BruteForceCracker:
 
     def __init__(self, url, username, error_message):
@@ -30,13 +30,6 @@ class BruteForceCracker:
                 sys.stdout.flush()
                 time.sleep(0.02)
 
-
-def hash_cracker_banner():
-    print("""
-    =============================
-        Hash Cracker
-    =============================
-    """)
 
 
 def crack_hash(hash_type, hash_value, wordlist):
@@ -64,6 +57,7 @@ def crack_hash(hash_type, hash_value, wordlist):
         print("[!] Wordlist file not found!")
 
 
+
 def online_lookup(hash_value):
     print("[*] Searching online for hash...")
     url = f"http://hashtoolkit.com/reverse-hash?hash={hash_value}"
@@ -78,105 +72,56 @@ def online_lookup(hash_value):
         print("[!] Failed to fetch data from HashToolKit.")
 
 
-def hash_cracker_main():
-    hash_cracker_banner()
+def hash_cracker_wrapper():
+    """
+    Wrapper function to call hashcracker.main() with arguments
+    based on user input
+    """
+    # Get user input
+    hash_value = input("Enter hash to crack: ")
     
-    # Get user input for hash cracking
-    hash_value = input("Enter hash value to crack: ")
-    print("\nSupported hash types:")
+    print("\nSelect hash type:")
     print("1. MD5")
     print("2. SHA1")
     print("3. SHA256")
     print("4. SHA512")
+    hash_choice = input("Choose hash type (1-4): ")
     
-    hash_type_choice = input("\nSelect hash type (1-4): ")
-    if hash_type_choice == '1':
-        hash_type = 'md5'
-    elif hash_type_choice == '2':
-        hash_type = 'sha1'
-    elif hash_type_choice == '3':
-        hash_type = 'sha256'
-    elif hash_type_choice == '4':
-        hash_type = 'sha512'
-    else:
-        print("Invalid choice. Defaulting to MD5.")
-        hash_type = 'md5'
+    # Map choice to hash type
+    hash_types = {
+        '1': 'md5',
+        '2': 'sha1',
+        '3': 'sha256',
+        '4': 'sha512'
+    }
+    hash_type = hash_types.get(hash_choice, 'md5')
     
     print("\nChoose cracking method:")
     print("1. Use wordlist")
     print("2. Online lookup")
+    method = input("Choose method (1-2): ")
     
-    method_choice = input("\nSelect method (1-2): ")
+    # Save original sys.argv
+    original_argv = sys.argv.copy()
     
-    if method_choice == '1':
-        wordlist = input("Enter path to wordlist file: ")
-        crack_hash(hash_type, hash_value, wordlist)
-    elif method_choice == '2':
-        online_lookup(hash_value)
-    else:
-        print("Invalid choice.")
-
-    def get_csrf_token(self):
-        try:
-            response = self.session.get(self.url)
-            # Try to extract token using BeautifulSoup
-            soup = BeautifulSoup(response.content, 'html.parser')
-            
-            # Look for common CSRF token field names
-            csrf_field = soup.find('input', attrs={'name': re.compile(r'csrf|CSRF|token|_token', re.I)})
-            if csrf_field and csrf_field.has_attr('value'):
-                return csrf_field['name'], csrf_field['value']
-            
-            # Alternative method: look for meta tags
-            meta_token = soup.find('meta', attrs={'name': re.compile(r'csrf|CSRF|token', re.I)})
-            if meta_token and meta_token.has_attr('content'):
-                return meta_token['name'], meta_token['content']
-            
-            # Last resort: try to find it in the HTML with regex
-            match = re.search(r'name=["\'](_csrf|csrf_token|CSRF|token)["\'] value=["\'](.*?)["\']', response.text)
-            if match:
-                return match.group(1), match.group(2)
-                
-            print("Could not find CSRF token. The site might use a different method.")
-            return None, None
-        except Exception as e:
-            print(f"Error getting CSRF token: {e}")
-            return None, None
-
-    def crack(self, password):
-        # Get a fresh CSRF token for each attempt
-        token_name, token_value = self.get_csrf_token()
+    try:
+        # Create new argument list
+        sys.argv = ['hashcracker.py', '-H', hash_value, '-T', hash_type]
         
-        # Prepare the login data
-        data_dict = {"UserName": self.username, "Password": password, "Log In": "submit"}
-        
-        # Add CSRF token if found
-        if token_name and token_value:
-            data_dict[token_name] = token_value
-            print(f"Using CSRF token: {token_name}={token_value[:10]}...")
-        
-        # Make the login attempt
-        response = self.session.post(self.url, data=data_dict)
-
-        # Check if login was successful
-        if self.error_message in str(response.content):
-            return False
+        if method == '1':
+            wordlist = input("Enter path to wordlist: ")
+            sys.argv.extend(['-W', wordlist])
+        elif method == '2':
+            sys.argv.append('-O')
         else:
-            print("\n[+] Success!")
-            print("Username: ---> " + self.username)
-            print("Password: ---> " + password)
-            return True
-
-
-def crack_passwords(passwords, cracker):
-    count = 0
-    for password in passwords:
-        count += 1
-        password = password.strip()
-        print(f"Trying Password: {count} Time For => {password}")
-        if cracker.crack(password):
+            print("Invalid choice")
             return
-
+        
+        # Call the original main function
+        hashcracker_main()
+    finally:
+        # Restore original sys.argv
+        sys.argv = original_argv
 
 def brute_force_main():
     url = input("Enter Target Url: ")
@@ -476,7 +421,7 @@ def main():
         # Run cryptographic file sender
         crypto_file_sender()
     elif choice == '3':
-        hash_cracker_main()
+        hash_cracker_wrapper()
     else:
         print("Invalid choice. Please select 1 - 3.")
         main()
