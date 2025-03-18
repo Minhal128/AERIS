@@ -15,7 +15,7 @@ import base64
 import os
 import struct
 import hashlib
-
+from hashcracker import crack_hash, online_lookup, banner as hash_banner
 
 class BruteForceCracker:
 
