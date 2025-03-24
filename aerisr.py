@@ -16,7 +16,7 @@ import os
 import struct
 import hashlib
 import hash_cracker
-
+import importlib
 class BruteForceCracker:
 
     def __init__(self, url, username, error_message):
@@ -382,52 +382,76 @@ def show_key_banner():
     1- Brute Force
     2- CipherLink
     3- Hash Cracker
-    Enter your choice (1-3):
+    0- Return to Main Menu
+    
+    Enter your choice (0-3):
     """
     print(key_banner)
 
 
 def main():
-    show_key_banner()
-    choice = input().strip()
-    
-    if choice == '1':
-        # Run brute force functionality
-        # Display brute force banner only when option 1 is selected
-        print (""" 
-
+    while True:
+        show_key_banner()
+        choice = input().strip()
+        
+        if choice == '0':
+            # Return to main menu
+            print("Returning to main menu...")
+            return True
+        
+        elif choice == '1':
+            # Run brute force functionality
+            print ("""
 ██████  ██████  ██    ██ ████████ ███████     ███████  ██████  ██████   ██████ ███████ 
 ██   ██ ██   ██ ██    ██    ██    ██          ██      ██    ██ ██   ██ ██      ██      
 ██████  ██████  ██    ██    ██    █████       █████   ██    ██ ██████  ██      █████   
 ██   ██ ██   ██ ██    ██    ██    ██          ██      ██    ██ ██   ██ ██      ██      
 ██████  ██   ██  ██████     ██    ███████     ██       ██████  ██   ██  ██████ ███████                                                            
-                                                                            
+                                                            
                                         3ntr0py
-        
-
-
-""")
-        brute_banner = """ 
-                       Checking the Server !!        
-        [+]█████████████████████████████████████████████████[+]
-        """
-        global banner
-        banner = brute_banner
-        print(banner)
-        brute_force_main()
-    elif choice == '2':
-        # Run cryptographic file sender
-        crypto_file_sender()
-    elif choice == '3':
-        # Run hash cracker with direct command input
-        from hash_cracker import hash_cracker_with_args
-        
-        print("Enter hash cracker command arguments (e.g. -H <hash> -T <type> -W <wordlist>):")
-        command = input()
-        hash_cracker_with_args(command)
-    else:
-        print("Invalid choice. Please select 1 - 3.")
-        main()
+            """)
+            brute_banner = """ 
+                           Checking the Server !!        
+            [+]█████████████████████████████████████████████████[+]
+            """
+            global banner
+            banner = brute_banner
+            print(banner)
+            brute_force_main()
+            
+            # After function completes, ask if user wants to return to main menu
+            print("\nBrute force operation completed.")
+            cont = input("Press Enter to continue or '0' to return to main menu: ")
+            if cont == '0':
+                return True
+                
+        elif choice == '2':
+            # Run cryptographic file sender
+            crypto_file_sender()
+            # After GUI closes, we'll return to this menu automatically
+            
+        elif choice == '3':
+            # Run hash cracker with direct command input
+            from hash_cracker import hash_cracker_with_args
+            
+            print("Enter hash cracker command arguments (e.g. -H <hash> -T <type> -W <wordlist>):")
+            print("Or type '0' to return to main menu")
+            command = input()
+            
+            if command == '0':
+                continue
+                
+            hash_cracker_with_args(command)
+            
+            print("\nHash cracking operation completed.")
+            cont = input("Press Enter to continue or '0' to return to main menu: ")
+            if cont == '0':
+                return True
+        else:
+            print("Invalid choice. Please select 0-3.")
+            time.sleep(1)
+    
+    return False  # This line will only be reached if the loop is broken elsewhere
 
 
 if __name__ == '__main__':
