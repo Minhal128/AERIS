@@ -1,5 +1,9 @@
 # A purple teaming tool
 
+## Preview
+
+![Purple Teaming Preview](https://imgur.com/Fia9E5E.jpg)
+
 ## Blue Teaming Tools
 - Static Analysis
 - Dynamic Analysis
