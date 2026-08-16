@@ -16,3 +16,5 @@ db/
 
 # License file (if you want to ignore it)
 LICENSE
+config.bat
+node_modules

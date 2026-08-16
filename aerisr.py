@@ -298,7 +298,7 @@ def choose_file():
 
 def crypto_file_sender():
     print("""
-    # CipherLink by 3ntr0py
+    # CipherLink by Jibran
     # Secure File Transfer Tool
     # Version 1:0
     """)
@@ -306,7 +306,7 @@ def crypto_file_sender():
     global password_entry, file_path_label, host_entry, port_entry, status_label, root
     
     root = tk.Tk()
-    root.title("3ntr0py")
+    root.title("Jibran")
     root.geometry('400x500')
     root.configure(bg='black')
 
@@ -315,7 +315,7 @@ def crypto_file_sender():
         if isinstance(widget, tk.Entry):
             widget.configure(insertbackground='white')
 
-    mode_label = tk.Label(root, text="CipherLink by 3ntr0py", font=('Helvetica', 16, 'bold'))
+    mode_label = tk.Label(root, text="CipherLink by Jibran", font=('Helvetica', 16, 'bold'))
     configure_widget(mode_label)
     mode_label.pack(pady=10)
 
@@ -408,7 +408,7 @@ def main():
 ██   ██ ██   ██ ██    ██    ██    ██          ██      ██    ██ ██   ██ ██      ██      
 ██████  ██   ██  ██████     ██    ███████     ██       ██████  ██   ██  ██████ ███████                                                            
                                                             
-                                        3ntr0py
+                                        Jibran
             """)
             brute_banner = """ 
                            Checking the Server !!        

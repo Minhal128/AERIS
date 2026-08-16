@@ -36,7 +36,7 @@ def print_banner():
 {PURPLE}{BOLD}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓{RESET}
 {PURPLE}{BOLD}┃                      {RESET}{CYAN}AERIS - Purple Teaming Tool{RESET}{PURPLE}{BOLD}                      ┃{RESET}
 {PURPLE}{BOLD}┃                                                                      ┃{RESET}
-{PURPLE}{BOLD}┃{RESET} {YELLOW}Author: Minhal{RESET}                                  {CYAN}Version: 1.0{RESET} {PURPLE}{BOLD}┃{RESET}
+{PURPLE}{BOLD}┃{RESET} {YELLOW}Author: Jibran{RESET}                                  {CYAN}Version: 1.0{RESET} {PURPLE}{BOLD}┃{RESET}
 {PURPLE}{BOLD}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛{RESET}
 """
     print(banner)

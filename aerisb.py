@@ -168,7 +168,7 @@ def show_banner():
             '.____'.____.'____.'
             '.________________.'
             
-        {RED}Author: Minhal | Version: 1.0{RESET}
+        {RED}Author: Jibran | Version: 1.0{RESET}
             """)
 
 
